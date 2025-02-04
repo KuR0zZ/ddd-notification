@@ -8,4 +8,5 @@ import (
 
 func InitRoute(e *echo.Echo, ns services.NotificationService) {
 	e.POST("/notifications", ns.AddNotification)
+	e.GET("/notifications", ns.GetNotSentNotification)
 }

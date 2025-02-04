@@ -32,7 +32,26 @@ func (pr *PostgresRepository) Add(data *entity.Notification) error {
 }
 
 func (pr *PostgresRepository) GetNotSent() ([]entity.Notification, error) {
-	return nil, nil
+	query := "SELECT * FROM Notifications WHERE status = $1"
+
+	rows, err := pr.db.Query(query, "Not Sent")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notifications []entity.Notification
+	for rows.Next() {
+		var notification entity.Notification
+
+		err := rows.Scan(&notification.ID, &notification.Email, &notification.Message, &notification.Type, &notification.Status)
+		if err != nil {
+			return nil, err
+		}
+		notifications = append(notifications, notification)
+	}
+
+	return notifications, nil
 }
 
 func (pr *PostgresRepository) UpdateStatus(id string) error {

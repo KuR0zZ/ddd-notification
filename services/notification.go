@@ -51,3 +51,12 @@ func (ns *NotificationService) AddNotification(c echo.Context) error {
 		"data":    data,
 	})
 }
+
+func (ns *NotificationService) GetNotSentNotification(c echo.Context) error {
+	notifications, err := ns.repo.GetNotSent()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, notifications)
+}
