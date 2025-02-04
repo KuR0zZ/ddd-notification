@@ -13,8 +13,6 @@ func InitDB() *sqlx.DB {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
-
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
 	}
