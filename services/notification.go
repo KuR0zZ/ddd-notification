@@ -60,3 +60,18 @@ func (ns *NotificationService) GetNotSentNotification(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, notifications)
 }
+
+func (ns *NotificationService) UpdateNotificationStatus(c echo.Context) error {
+	id := c.Param("id")
+
+	if err := ns.repo.UpdateStatus(id); err != nil {
+		if err.Error() == "notification not found" {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Successfully update notification status",
+	})
+}

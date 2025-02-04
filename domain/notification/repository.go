@@ -2,6 +2,7 @@ package notification
 
 import (
 	"ddd-notification/domain/notification/entity"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -55,5 +56,16 @@ func (pr *PostgresRepository) GetNotSent() ([]entity.Notification, error) {
 }
 
 func (pr *PostgresRepository) UpdateStatus(id string) error {
+	query := "UPDATE Notifications SET status = $1 WHERE id = $2 AND status != $3"
+
+	result, err := pr.db.Exec(query, "Sent", id, "Sent")
+	if err != nil {
+		return err
+	}
+
+	if row, _ := result.RowsAffected(); row == 0 {
+		return fmt.Errorf("notification not found or already sent")
+	}
+
 	return nil
 }
