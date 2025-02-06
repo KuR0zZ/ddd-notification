@@ -29,6 +29,8 @@ message Notification {
     string message = 3;
     string type = 4;
     bool isSent = 5;
+    string created_at = 6;
+    string updated_at = 7;
 }
 
 message Notifications {

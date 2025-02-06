@@ -33,9 +33,9 @@ func (pr *PostgresRepository) Create(notification *entity.Notification) error {
 }
 
 func (pr *PostgresRepository) GetNotSent() ([]entity.Notification, error) {
-	query := "SELECT * FROM Notifications WHERE status = $1"
+	query := "SELECT * FROM Notifications WHERE is_sent = $1"
 
-	rows, err := pr.db.Query(query, "Not Sent")
+	rows, err := pr.db.Query(query, false)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (pr *PostgresRepository) GetNotSent() ([]entity.Notification, error) {
 	for rows.Next() {
 		var notification entity.Notification
 
-		err := rows.Scan(&notification.ID, &notification.Email, &notification.Message, &notification.Type, &notification.IsSent)
+		err := rows.Scan(&notification.ID, &notification.Email, &notification.Message, &notification.Type, &notification.IsSent, &notification.CreatedAt, &notification.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}

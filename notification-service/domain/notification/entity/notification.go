@@ -1,9 +1,13 @@
 package entity
 
+import "time"
+
 type Notification struct {
-	ID      string `json:"id"`
-	Email   string `json:"email"`
-	Message string `json:"message"`
-	Type    string `json:"type"`
-	IsSent  bool   `json:"is_sent"`
+	ID        string
+	Email     string
+	Message   string
+	Type      string
+	IsSent    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
