@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -77,4 +78,49 @@ func (nc *NotificationController) GetNotSent(c fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resGrpc.Notification)
+}
+
+func (nc *NotificationController) UpdateStatusToSent(c fiber.Ctx) error {
+	ctx, cancel, err := helpers.NewServiceContext()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	defer cancel()
+
+	resGrpc1, err := nc.Client.GetNotSent(ctx, &emptypb.Empty{})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": status.Convert(err).Message(),
+		})
+	}
+
+	ctx, cancel, err = helpers.NewServiceContext()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	defer cancel()
+
+	resGrpc2, err := nc.Client.UpdateStatusToSent(ctx, resGrpc1)
+	if err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.NotFound:
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+					"message": err.Error(),
+				})
+			case codes.Internal:
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"message": err.Error(),
+				})
+			}
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": fmt.Sprintf("Successfully updated %d email notification and %d sms notification", resGrpc2.EmailNotification, resGrpc2.SmsNotification),
+	})
 }

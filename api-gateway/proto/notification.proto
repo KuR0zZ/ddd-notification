@@ -28,7 +28,7 @@ message Notification {
     string email = 2;
     string message = 3;
     string type = 4;
-    bool isSent = 5;
+    bool is_sent = 5;
     string created_at = 6;
     string updated_at = 7;
 }
