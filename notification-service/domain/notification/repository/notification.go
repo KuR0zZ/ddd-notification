@@ -1,10 +1,14 @@
 package repository
 
 import (
-	"fmt"
+	"errors"
 	"notification-service/domain/notification/entity"
 
 	"github.com/jmoiron/sqlx"
+)
+
+var (
+	ErrNotificationNotFound = errors.New("notification not found or already sent")
 )
 
 type Repository interface {
@@ -56,15 +60,15 @@ func (pr *PostgresRepository) GetNotSent() ([]entity.Notification, error) {
 }
 
 func (pr *PostgresRepository) UpdateStatus(id string) error {
-	query := "UPDATE Notifications SET status = $1 WHERE id = $2 AND status != $3"
+	query := "UPDATE Notifications SET is_sent = $1 WHERE id = $2"
 
-	result, err := pr.db.Exec(query, "Sent", id, "Sent")
+	result, err := pr.db.Exec(query, true, id)
 	if err != nil {
 		return err
 	}
 
 	if row, _ := result.RowsAffected(); row == 0 {
-		return fmt.Errorf("notification not found or already sent")
+		return ErrNotificationNotFound
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"notification-service/domain/notification/entity"
 	"notification-service/domain/notification/repository"
 	"notification-service/helpers"
@@ -52,6 +53,27 @@ func (s *Service) GetNotSent(ctx context.Context, request *emptypb.Empty) (*pb.N
 	return &pb.Notifications{Notification: notifications}, nil
 }
 
-func (s *Service) UpdateNotificationStatus(ctx context.Context, request *pb.Notifications) (*pb.UpdateStatusToSentResponse, error) {
-	return nil, nil
+func (s *Service) UpdateStatusToSent(ctx context.Context, request *pb.Notifications) (*pb.UpdateStatusToSentResponse, error) {
+	var email_counter uint32
+	var sms_counter uint32
+
+	for _, notification := range request.Notification {
+		if err := s.Repository.UpdateStatus(notification.Id); err != nil {
+			if errors.Is(err, repository.ErrNotificationNotFound) {
+				return nil, status.Error(codes.NotFound, err.Error())
+			}
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+
+		if notification.Type == "EMAIL" {
+			email_counter++
+		} else {
+			sms_counter++
+		}
+	}
+
+	return &pb.UpdateStatusToSentResponse{
+		EmailNotification: email_counter,
+		SmsNotification:   sms_counter,
+	}, nil
 }
