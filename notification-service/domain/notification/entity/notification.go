@@ -5,5 +5,5 @@ type Notification struct {
 	Email   string `json:"email"`
 	Message string `json:"message"`
 	Type    string `json:"type"`
-	Status  string `json:"status"`
+	IsSent  bool   `json:"is_sent"`
 }

@@ -1,77 +1,49 @@
 package services
 
 import (
-	"ddd-notification/domain/notification"
-	"ddd-notification/domain/notification/entity"
-	"net/http"
+	"context"
+	"notification-service/domain/notification/entity"
+	"notification-service/domain/notification/repository"
+	"notification-service/proto/pb"
 
-	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type NotificationService struct {
-	repo notification.Repository
+type Service struct {
+	pb.UnimplementedNotificationServiceServer
+	Repository repository.Repository
 }
 
-func NewNotificationService(repo notification.Repository) *NotificationService {
-	return &NotificationService{repo}
+func NewService(repository repository.Repository) *Service {
+	return &Service{Repository: repository}
 }
 
-func (ns *NotificationService) AddNotification(c echo.Context) error {
-	var req struct {
-		Email   string `json:"email" validate:"required,email"`
-		Message string `json:"message" validate:"required"`
-		Type    string `json:"type" validate:"required"`
+func (ns *Service) Create(ctx context.Context, request *pb.CreateRequest) (*pb.CreateResponse, error) {
+	notification := &entity.Notification{
+		Email:   request.Email,
+		Message: request.Message,
+		Type:    request.Type,
+		IsSent:  false,
 	}
 
-	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := ns.Repository.Create(notification); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if err := c.Validate(&req); err != nil {
-		return err
+	response := &pb.CreateResponse{
+		Id:   notification.ID,
+		Type: notification.Type,
 	}
 
-	if req.Type != "SMS" && req.Type != "EMAIL" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid notification type")
-	}
-
-	data := &entity.Notification{
-		Email:   req.Email,
-		Message: req.Message,
-		Type:    req.Type,
-		Status:  "Not Sent",
-	}
-
-	if err := ns.repo.Add(data); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusCreated, map[string]interface{}{
-		"message": "Notification added successfully",
-		"data":    data,
-	})
+	return response, nil
 }
 
-func (ns *NotificationService) GetNotSentNotification(c echo.Context) error {
-	notifications, err := ns.repo.GetNotSent()
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusOK, notifications)
+func (ns *Service) GetNotSent(ctx context.Context, request *emptypb.Empty) (*pb.Notifications, error) {
+	return nil, nil
 }
 
-func (ns *NotificationService) UpdateNotificationStatus(c echo.Context) error {
-	id := c.Param("id")
-
-	if err := ns.repo.UpdateStatus(id); err != nil {
-		if err.Error() == "notification not found" {
-			return echo.NewHTTPError(http.StatusNotFound, err.Error())
-		}
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Successfully update notification status",
-	})
+func (ns *Service) UpdateNotificationStatus(ctx context.Context, request *pb.Notifications) (*pb.UpdateStatusToSentResponse, error) {
+	return nil, nil
 }

@@ -1,14 +1,14 @@
-package notification
+package repository
 
 import (
-	"ddd-notification/domain/notification/entity"
 	"fmt"
+	"notification-service/domain/notification/entity"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type Repository interface {
-	Add(data *entity.Notification) error
+	Create(notification *entity.Notification) error
 	GetNotSent() ([]entity.Notification, error)
 	UpdateStatus(id string) error
 }
@@ -21,10 +21,10 @@ func NewPostgresRepository(db *sqlx.DB) Repository {
 	return &PostgresRepository{db}
 }
 
-func (pr *PostgresRepository) Add(data *entity.Notification) error {
-	query := "INSERT INTO Notifications (email, message, type, status) VALUES ($1, $2, $3, $4) RETURNING id"
+func (pr *PostgresRepository) Create(notification *entity.Notification) error {
+	query := "INSERT INTO Notifications (email, message, type, is_sent) VALUES ($1, $2, $3, $4) RETURNING id"
 
-	err := pr.db.QueryRow(query, data.Email, data.Message, data.Type, data.Status).Scan(&data.ID)
+	err := pr.db.QueryRow(query, notification.Email, notification.Message, notification.Type, notification.IsSent).Scan(&notification.ID)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (pr *PostgresRepository) GetNotSent() ([]entity.Notification, error) {
 	for rows.Next() {
 		var notification entity.Notification
 
-		err := rows.Scan(&notification.ID, &notification.Email, &notification.Message, &notification.Type, &notification.Status)
+		err := rows.Scan(&notification.ID, &notification.Email, &notification.Message, &notification.Type, &notification.IsSent)
 		if err != nil {
 			return nil, err
 		}
