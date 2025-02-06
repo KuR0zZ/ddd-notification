@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package notification;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "pb/;pb";
+
+service NotificationService {
+    rpc Create (CreateRequest) returns (CreateResponse) {}
+    rpc GetNotSent (google.protobuf.Empty) returns (Notifications) {}
+    rpc UpdateStatusToSent (Notifications) returns (UpdateStatusToSentResponse) {}
+}
+
+message CreateRequest {
+    string email = 1;
+    string message = 2;
+    string type = 3;
+}
+
+message CreateResponse {
+    string id = 1;
+    string type = 2;
+}
+
+message Notification {
+    string id = 1;
+    string email = 2;
+    string message = 3;
+    string type = 4;
+    bool isSent = 5;
+}
+
+message Notifications {
+    repeated Notification notification = 1;
+}
+
+message UpdateStatusToSentResponse {
+    uint32 email_notification = 1;
+    uint32 sms_notification = 2;
+}
+
+
+
+
+
