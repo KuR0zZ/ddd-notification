@@ -8,4 +8,5 @@ import (
 
 func InitRoute(app *fiber.App, nc controllers.NotificationController) {
 	app.Post("/notifications", nc.Create)
+	app.Get("/notifications", nc.GetNotSent)
 }

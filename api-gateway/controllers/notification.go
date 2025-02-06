@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type NotificationController struct {
@@ -57,4 +58,23 @@ func (nc *NotificationController) Create(c fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": fmt.Sprintf("Successfully created notification with Id: %s and Type: %s", resGrpc.Id, resGrpc.Type),
 	})
+}
+
+func (nc *NotificationController) GetNotSent(c fiber.Ctx) error {
+	ctx, cancel, err := helpers.NewServiceContext()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	defer cancel()
+
+	resGrpc, err := nc.Client.GetNotSent(ctx, &emptypb.Empty{})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": status.Convert(err).Message(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(resGrpc.Notification)
 }
